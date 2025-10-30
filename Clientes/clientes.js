@@ -27,25 +27,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const lineaCSV = convertirADisposicionCSV(datosCliente);
         console.log("Línea CSV generada:", lineaCSV);
 
-        // 4. *** PUNTO CLAVE: Envío al servidor (simulación) ***
-        // Aquí es donde, en un proyecto real, se enviaría 'datosCliente' o 'lineaCSV' 
-        // a un endpoint del servidor (ej. usando 'fetch') para que el servidor 
-        // lo guarde en el archivo 'clientes.csv'.
-
-        // fetch('/guardar-cliente', {
-        //     method: 'POST',
-        //     headers: {'Content-Type': 'application/json'},
-        //     body: JSON.stringify(datosCliente)
-        // })
-        // .then(response => response.json())
-        // .then(data => {
-        //     alert("¡Cliente guardado con éxito!");
-        //     formulario.reset(); // Limpia el formulario
-        // })
-        // .catch(error => {
-        //     console.error('Error al guardar:', error);
-        //     alert("Hubo un error al intentar guardar el cliente.");
-        // });
+        // 4. Enviar al servidor usando fetch al endpoint /clientes/nuevo
+        fetch('/clientes/nuevo', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(datosCliente)
+        })
+        .then(async response => {
+            const json = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                const message = json.error || `Error del servidor: ${response.status}`;
+                throw new Error(message);
+            }
+            return json;
+        })
+        .then(data => {
+            alert("¡Cliente guardado con éxito!");
+            formulario.reset(); // Limpia el formulario
+        })
+        .catch(error => {
+            console.error('Error al guardar:', error);
+            alert("Hubo un error al intentar guardar el cliente: " + error.message);
+        });
 
 
         // --- Mensaje de éxito simulado ---

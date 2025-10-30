@@ -17,7 +17,26 @@ const precioAceite = document.getElementById('precio-aceite');
 const valorManoObra = document.getElementById('valor-mano-obra');
 
 let allCsvData = [];
-const csvFilePath = 'bdato.csv';
+// Nombre del archivo CSV (actualizado tras renombrar el archivo en el proyecto)
+// Si lo renombraste con otro nombre, reemplaza aquí por el nombre correcto.
+const csvFilePath = 'bdato.f.csv';
+
+// Detecta el separador más probable a partir de unas líneas de muestra
+function detectSeparator(sampleText) {
+    const candidates = [',', ';', '\t', '|'];
+    const lines = sampleText.split(/\r?\n/).filter(l => l.trim().length > 0);
+    if (lines.length === 0) return ';';
+
+    const scores = candidates.map(sep => {
+        // calcular número total de campos (suma de partes por línea)
+        const totalParts = lines.reduce((acc, line) => acc + line.split(sep).length, 0);
+        return { sep, totalParts };
+    });
+
+    scores.sort((a, b) => b.totalParts - a.totalParts);
+    // si todos los candidatos tienen 0 (texto sin separadores), fallback a ';'
+    return scores[0].totalParts > lines.length ? scores[0].sep : ';';
+}
 
 // Función para limpiar el contenido de las etiquetas
 const clearLabels = () => {
@@ -74,7 +93,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Cargar y procesar el archivo CSV
-fetch(csvFilePath)
+// Usamos encodeURI por si el nombre del archivo contiene espacios u otros caracteres
+fetch(encodeURI(csvFilePath))
     .then(response => {
         if (!response.ok) {
             throw new Error('No se pudo cargar el archivo CSV');
@@ -82,11 +102,22 @@ fetch(csvFilePath)
         return response.text();
     })
     .then(data => {
-        const lines = data.split('\n');
-        allCsvData = lines.slice(1).map(line => line.trim().split(';')).filter(fields => fields.length > 1);
+        // Normalizar saltos de línea y eliminar líneas vacías
+        const rawLines = data.split(/\r?\n/).filter(l => l.trim().length > 0);
+        // Tomar un bloque de muestra para detectar el separador (incluye encabezado)
+        const sample = rawLines.slice(0, 10).join('\n');
+        const sep = detectSeparator(sample);
+
+        // Convertir cada línea en array de campos usando el separador detectado
+        allCsvData = rawLines.slice(1).map(line => line.split(sep).map(f => f.trim())).filter(fields => fields.length > 1);
+
+        // Si no hay datos después del parseo, intentar con ';' como fallback
+        if (allCsvData.length === 0 && sep !== ';') {
+            allCsvData = rawLines.slice(1).map(line => line.split(';').map(f => f.trim())).filter(fields => fields.length > 1);
+        }
 
         // Llenar el primer desplegable
-        populateDropdown(select1, [...new Set(allCsvData.map(fields => fields[0]))]);
+    populateDropdown(select1, [...new Set(allCsvData.map(fields => fields[0]))]);
         
         // Listener para el primer desplegable
         select1.addEventListener('change', () => {

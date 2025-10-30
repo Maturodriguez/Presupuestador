@@ -1,10 +1,12 @@
 body {
     font-family: Arial, sans-serif;
-    background-color: #f0f2f5;
+    background-image: url('IMG/m&m.jpeg'); /* Imagen de fondo */
+    background-color: #ffffff;
+    background-size:contain;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: left;
     height: 100vh;
     margin: 0;
 }
@@ -15,7 +17,7 @@ body {
     border-radius: 10px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 400px; /* Tamaño considerable pero sin ser excesivo */
+    max-width: 350px; /* Tamaño considerable pero sin ser excesivo */
     text-align: center;
 }
 
